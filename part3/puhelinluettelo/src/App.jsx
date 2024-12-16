@@ -107,7 +107,7 @@ const App = () => {
             setNotificationMessage(null)
           }, 2000)
   
-          setPersons(persons.filter(person => person.id != deletedPerson.id))
+          setPersons(persons.filter(person => person.id != event.target.id))
       })
      
     }
