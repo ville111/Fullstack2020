@@ -16,8 +16,14 @@ app.get('/', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-    response.send(`<p>Phonebook has info for ${persons.length} people </p>
-        <p> ${new Date()} </p>`)
+   
+    console.log('info')
+    Person.find({}).then(persons => {
+        response.send(`<p>Phonebook has info for ${persons.length } people </p>
+            <p> ${new Date()} </p>`)
+      
+    }).catch(error => next(error))
+
 })
 
 app.get('/api/persons', (request, response) => {
@@ -58,7 +64,7 @@ const generateId = () => {
     return String(maxId + 1)
 }
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
     console.log(body)
 
@@ -82,12 +88,44 @@ app.post('/api/persons', (request, response) => {
         name: body.name,
         number: body.number
     })
-
-    person.save().then(result => {
-        console.log(`added ${body.name} ${body.number} to phonebook`)
-    })
     
-    response.json(person)
+    person.save()
+        .then(savedPerson => {
+            console.log(`added ${body.name} ${body.number} to phonebook`)
+            response.json(savedPerson)
+        }).catch(error => next(error))
+    
+  
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id
+    const body = request.body
+    console.log('put:',body)
+
+    if (!body.name) {
+        return response.status(400).json({ 
+          error: 'name missing' 
+        })
+    }
+    else if (!body.number) {
+        return response.status(400).json({ 
+          error: 'number missing' 
+        })
+    }
+    
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+    
+    Person.findByIdAndUpdate(id, person, { new: true })
+    .then(updatedPerson => {
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
+    
+
 })
 
 const errorHandler = (error, request, response, next) => {
@@ -95,6 +133,9 @@ const errorHandler = (error, request, response, next) => {
   
     if (error.name === 'CastError') {
       return response.status(400).send({ error: 'malformatted id' })
+    } else if (error.name === 'ValidationError') {
+        console.log("validation error")
+        return response.status(400).json({ error: error.message })
     }
   
     next(error)

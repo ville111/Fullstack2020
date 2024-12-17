@@ -25,6 +25,27 @@ const Notification = ({ message }) => {
   )
 }
 
+const ErrorNotification = ({ message }) => {
+
+  if (message === null) {
+    return null
+  }
+
+  const messageStyle = {
+    color: 'red',
+    fontStyle: 'bold',
+    fontSize: 16,
+    padding: 10,
+    border: '4px solid red',
+    borderRadius: 3
+  }
+  return (
+    <div style={messageStyle}>
+      {message} 
+    </div>
+  )
+}
+
 const Person = ({id, name, number,handleDeleteChange}) =>  (
     <div>
   <form>{name} {number} <input type="button" value="delete" id={id} name={name} onClick={handleDeleteChange}/></form>
@@ -54,6 +75,7 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [notificationMessage, setNotificationMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   useEffect(() => {
     personService
@@ -65,8 +87,25 @@ const App = () => {
 
   const addPerson = (event) => {
     event.preventDefault()
-    if (persons.find(person => newName === person.name)) {
-      alert(`${newName} is already added to phonebook`)
+    const person = persons.find(person => newName === person.name)
+    if (person) {
+     
+      const personObject = { name: newName, number: newNumber }
+
+      personService
+      .update(person.id, personObject)
+      .then(returnedPerson => {
+       
+      setNotificationMessage(
+        `Updated '${newName}'`
+      ) 
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 2000)
+
+      setPersons(persons.filter(updatedPerson => updatedPerson.id != person.id).concat(returnedPerson))
+    
+      })
     }
     else {
       const personObject = { name: newName, number: newNumber }
@@ -84,8 +123,17 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
       
       })
-     
-    }
+      .catch(error => {
+        setErrorMessage(`Failed to add ${newName}. Name must be at least 3 characthers`)
+          console.log('errr', error)
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 2000)
+      })
+    
+    } 
+    
+    
     setNewName('')
     setNewNumber('')
     
@@ -118,6 +166,7 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
+     <ErrorNotification message={errorMessage} />
      <Notification message={notificationMessage} />
      <Personform addPerson={addPerson}
       newName={newName}
