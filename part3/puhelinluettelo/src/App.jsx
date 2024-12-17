@@ -27,7 +27,7 @@ const Notification = ({ message }) => {
 
 const Person = ({id, name, number,handleDeleteChange}) =>  (
     <div>
-  <form>{id} {name} {number} <input type="button" value="delete" id={id} name={name} onClick={handleDeleteChange}/></form>
+  <form>{name} {number} <input type="button" value="delete" id={id} name={name} onClick={handleDeleteChange}/></form>
  </div>
 )
 
