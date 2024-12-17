@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import axios from 'axios'
 import { useState } from 'react'
 import personService from './services/persons'
 
